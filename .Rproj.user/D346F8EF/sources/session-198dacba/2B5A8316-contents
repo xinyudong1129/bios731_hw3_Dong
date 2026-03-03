@@ -4,7 +4,7 @@ simulate_logistic_data <- function(
     n = 200,
     beta0 = 1,
     beta1 = 0.3,
-    seed = NULL
+    seed = 123
 ) {
   
   if (!is.null(seed)) set.seed(seed)
