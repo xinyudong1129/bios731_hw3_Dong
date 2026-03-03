@@ -22,3 +22,29 @@ hess_logistic <- function(beta,X,y){
   
   - t(X) %*% W %*% X
 }
+
+
+wald_ci <- function(beta, X, y){
+  
+  eta <- X %*% beta
+  p <- 1/(1+exp(-eta))
+  
+  W <- diag(as.vector(p*(1-p)))
+  
+  info <- t(X) %*% W %*% X
+  
+  vcov <- solve(info)
+  
+  se <- sqrt(diag(vcov))
+  
+  lower <- beta - 1.96*se
+  upper <- beta + 1.96*se
+  
+  data.frame(
+    Estimate = beta,
+    SE = se,
+    Lower = lower,
+    Upper = upper
+  )
+  
+}

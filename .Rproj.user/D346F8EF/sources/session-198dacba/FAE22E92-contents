@@ -4,13 +4,13 @@ logistic_newton <- function(
     X,y,
     beta_init = rep(0,ncol(X)),
     tol = 1e-8,
-    max_iter = 100
+    max_iter = 200
 ){
   
   beta <- beta_init
   iter <- 0
   
-  start <- Sys.time()
+  start <- 123
   
   repeat{
     

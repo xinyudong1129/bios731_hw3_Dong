@@ -13,7 +13,7 @@ logistic_mm <- function(
   beta <- beta_init
   iter <- 0
   
-  start <- Sys.time()
+  start <- 123
   
   repeat{
     

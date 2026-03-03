@@ -1,18 +1,24 @@
-
-em_exp <- function(y,delta,lambda_init=1,tol=1e-8){
+em_exp <- function(y, delta, lambda_init = 1, tol = 1e-8, max_iter = 2000){
   
   lambda <- lambda_init
   iter <- 0
+  
+  lambda_trace <- c(lambda)
   
   repeat{
     
     iter <- iter + 1
     
-    E_T <- delta*y + (1-delta)*(y + 1/lambda)
+    # E-step
+    E_T <- delta * y + (1 - delta) * (y + 1 / lambda)
     
-    lambda_new <- length(y)/sum(E_T)
+    # M-step
+    lambda_new <- length(y) / sum(E_T)
     
-    if(abs(lambda_new-lambda)<tol){
+    lambda_trace <- c(lambda_trace, lambda_new)
+    
+    # Convergence check
+    if(abs(lambda_new - lambda) < tol || iter >= max_iter){
       lambda <- lambda_new
       break
     }
@@ -22,8 +28,8 @@ em_exp <- function(y,delta,lambda_init=1,tol=1e-8){
   }
   
   list(
-    lambda=lambda,
-    iterations=iter
+    lambda = lambda,
+    iterations = iter,
+    lambda_trace = lambda_trace
   )
-  
 }
