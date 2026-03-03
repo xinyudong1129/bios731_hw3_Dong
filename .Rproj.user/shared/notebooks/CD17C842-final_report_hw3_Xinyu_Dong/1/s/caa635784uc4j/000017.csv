@@ -1,3 +1,0 @@
-"0","plot(fit_em$lambda_trace, type = ""l"","
-"0","     xlab = ""Iteration"", ylab = expression(lambda),"
-"0","     main = ""EM convergence trace for lambda (Exponential rate)"")"
