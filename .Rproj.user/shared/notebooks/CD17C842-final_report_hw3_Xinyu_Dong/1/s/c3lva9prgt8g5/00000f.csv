@@ -5,7 +5,7 @@
 "0","  data = veteran,"
 "0","  dist = ""exponential"""
 "0",")"
-"0",""
+"0","mu_hat <- coef(fit_aft)[1]"
 "0","fit_aft"
 "1","Call:
 "

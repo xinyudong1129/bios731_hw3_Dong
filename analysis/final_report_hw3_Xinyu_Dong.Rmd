@@ -789,7 +789,8 @@ fit_aft <- survreg(
   data = veteran,
   dist = "exponential"
 )
-
+mu_hat <- coef(fit_aft)[1]
+lambda_aft <- exp(-mu_hat)
 fit_aft
 ```
 
