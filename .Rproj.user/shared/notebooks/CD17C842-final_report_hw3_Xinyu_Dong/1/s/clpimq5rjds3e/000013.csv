@@ -1,0 +1,6 @@
+"0","data.frame("
+"0","  method = c(""EM"", ""AFT (survreg)""),"
+"0","  lambda_hat = c(lambda_hat, lambda_aft),"
+"0","  lower_95 = c(ci_lambda_wald[""lower""], ci_lambda_aft[""lower""]),"
+"0","  upper_95 = c(ci_lambda_wald[""upper""], ci_lambda_aft[""upper""])"
+"0",")"
