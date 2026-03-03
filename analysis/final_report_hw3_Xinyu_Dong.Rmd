@@ -3,5 +3,272 @@ title: "final_report_hw3_Xinyu_Dong"
 author: "Xinyu Dong"
 date: "2026-03-03"
 output: pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+
+## Problem 1: Newton’s method for logistic regression
+
+Let $y_i \in \{0,1\}$, co-variate vector $x_i \in \mathbb{R}^{p}$
+(include intercept by setting the first component to 1), and parameter
+vector $\beta \in \mathbb{R}^{p}$. The logistic regression model is
+
+$$
+\pi_i := P(Y_i = 1 \mid x_i) = \frac{\exp(x_i^\top \beta)}{1+\exp(x_i^\top \beta)}.
+$$
+
+Equivalently, $\text{logit}(\pi_i)=x_i^\top\beta$.
+
+### Likelihood and log-likelihood
+
+The Bernoulli likelihood contribution is $$
+f(y_i;\pi_i)=\pi_i^{y_i}(1-\pi_i)^{1-y_i}.
+$$
+
+Thus the full likelihood is $$
+L(\beta)=\prod_{i=1}^n \left(\frac{\exp(x_i^\top\beta)}{1+\exp(x_i^\top\beta)}\right)^{y_i}
+\left(\frac{1}{1+\exp(x_i^\top\beta)}\right)^{1-y_i}.
+$$
+
+The log-likelihood is $$
+\ell(\beta)
+= \sum_{i=1}^n \left[y_i \log(\pi_i) + (1-y_i)\log(1-\pi_i)\right].
+$$
+
+Using $\log(\pi_i)=x_i^\top\beta - \log(1+\exp(x_i^\top\beta))$ and
+$\log(1-\pi_i)= -\log(1+\exp(x_i^\top\beta))$, we obtain the standard
+form: $$
+\ell(\beta) = \sum_{i=1}^n \left\{ y_i x_i^\top\beta - \log\left(1+\exp(x_i^\top\beta)\right) \right\}.
+$$
+
+### Gradient
+
+Let $\eta_i = x_i^\top\beta$ and
+$\pi_i = \frac{\exp(\eta_i)}{1+\exp(\eta_i)}$.
+
+Differentiate: $$
+\frac{\partial \ell(\beta)}{\partial \beta}
+= \sum_{i=1}^n \left\{ y_i x_i - \frac{\exp(\eta_i)}{1+\exp(\eta_i)}x_i \right\}
+= \sum_{i=1}^n (y_i-\pi_i)x_i.
+$$
+
+In matrix form, let $X$ be the $n\times p$ design matrix (row $i$ is
+$x_i^\top$), $y$ be the $n\times 1$ vector, and $\pi$ be the $n\times 1$
+vector with entries $\pi_i$. Then $$
+\nabla \ell(\beta) = X^\top (y-\pi).
+$$
+
+### Hessian
+
+We use $\frac{d\pi_i}{d\eta_i}=\pi_i(1-\pi_i)$ and
+$\frac{\partial \eta_i}{\partial \beta}=x_i$.
+
+Then $$
+\frac{\partial}{\partial \beta}\left[(y_i-\pi_i)x_i\right]
+= - \left(\frac{d\pi_i}{d\eta_i}\right) x_i x_i^\top
+= -\pi_i(1-\pi_i) x_i x_i^\top.
+$$
+
+Summing over $i$, $$
+\nabla^2 \ell(\beta) = -\sum_{i=1}^n \pi_i(1-\pi_i)\,x_i x_i^\top.
+$$
+
+In matrix form, define the diagonal weight matrix $$
+W(\beta)=\mathrm{diag}\left(\pi_1(1-\pi_1),\ldots,\pi_n(1-\pi_n)\right).
+$$ Then $$
+\nabla^2 \ell(\beta) = -X^\top W(\beta) X.
+$$
+
+### Newton’s method update
+
+Newton’s method for maximizing $\ell(\beta)$ uses $$
+\beta^{(k+1)} = \beta^{(k)} - \left[\nabla^2 \ell(\beta^{(k)})\right]^{-1}\nabla \ell(\beta^{(k)}).
+$$
+
+Plugging in the expressions above: $$
+\beta^{(k+1)}
+= \beta^{(k)} + \left[X^\top W(\beta^{(k)}) X\right]^{-1} X^\top \left(y-\pi(\beta^{(k)})\right).
+$$
+
+This is the classic IRLS/Newton update for logistic regression.
+
+### Convexity (or concavity) of the optimization problem
+
+-   The matrix $W(\beta)$ has non-negative diagonal entries
+    $\pi_i(1-\pi_i)\ge 0$.
+-   Therefore $X^\top W(\beta) X$ is positive semi-definite, which
+    implies $$
+    \nabla^2 \ell(\beta) = -X^\top W(\beta)X
+    $$ is negative semi-definite.
+
+Hence $\ell(\beta)$ is **concave** in $\beta$, and maximizing
+$\ell(\beta)$ is a **concave maximization** problem (equivalently,
+minimizing $-\ell(\beta)$ is a **convex minimization** problem). In that
+sense, logistic regression corresponds to a convex optimization problem
+when formulated as minimization of the negative log-likelihood.
+
+## Problem 2: MM derivations
+
+We start from the logistic log-likelihood $$
+\ell(\theta)=\sum_{i=1}^n \left\{ y_i x_i^\top\theta - \log\left(1+\exp(x_i^\top\theta)\right)\right\}.
+$$ The MM construction targets the difficult term
+$-\log(1+\exp(x_i^\top\theta))$.
+
+------------------------------------------------------------------------
+
+### (A) Prove the inequality that eliminates the log term
+
+Define, for $v>0$, $$
+h(v) = -\log(1+v).
+$$ We have $$
+h'(v)= -\frac{1}{1+v}, \qquad h''(v)=\frac{1}{(1+v)^2} >0?
+$$
+
+Careful: $h''(v)=\frac{1}{(1+v)^2}$ is **positive**, so $h(v)$ is
+**convex** in $v$?\
+Wait: compute again: $$
+h(v) = -\log(1+v), \quad h'(v)=-(1+v)^{-1}, \quad h''(v)= +(1+v)^{-2} > 0.
+$$ So indeed $h$ is convex. For MM minorization we want a **lower
+bound** on $h(v)$, and convex functions lie above tangents, so the
+tangent gives a global **lower bound**: $$
+h(v) \ge h(v_0) + h'(v_0)(v-v_0).
+$$
+
+Let $v=\exp(x_i^\top\theta)$ and $v_0=\exp(x_i^\top\theta^{(k)})$. Then
+$$
+-\log\{1+\exp(x_i^\top\theta)\}
+\ge
+-\log\{1+\exp(x_i^\top\theta^{(k)})\}
+-\frac{\exp(x_i^\top\theta)-\exp(x_i^\top\theta^{(k)})}{1+\exp(x_i^\top\theta^{(k)})}.
+$$
+
+Equality holds at $\theta=\theta^{(k)}$ because then $v=v_0$ and the
+tangent matches the function value.
+
+This is exactly the inequality stated in the homework.
+
+------------------------------------------------------------------------
+
+### (B) Apply AM–GM to separate parameters inside the exponential
+
+We now upper-bound $\exp(x_i^\top\theta)$ by a separable expression.
+
+Write $$
+\exp(x_i^\top\theta) = \exp(x_i^\top\theta^{(k)})\,
+\exp\left(x_i^\top(\theta-\theta^{(k)})\right)
+= \exp(x_i^\top\theta^{(k)})\prod_{j=1}^p \exp\left(x_{ij}(\theta_j-\theta^{(k)}_j)\right).
+$$
+
+Define $$
+b_{ij} := \exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right) > 0.
+$$ Then $$
+\prod_{j=1}^p \exp\left(x_{ij}(\theta_j-\theta^{(k)}_j)\right)
+=
+\prod_{j=1}^p b_{ij}^{1/p}.
+$$
+
+By the (unweighted) AM–GM inequality, $$
+\prod_{j=1}^p b_{ij}^{1/p} \le \frac{1}{p}\sum_{j=1}^p b_{ij}
+= \frac{1}{p}\sum_{j=1}^p \exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right).
+$$
+
+Therefore, $$
+\exp(x_i^\top\theta)
+\le
+\exp(x_i^\top\theta^{(k)})\cdot
+\frac{1}{p}\sum_{j=1}^p \exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right).
+$$
+
+Now plug this upper bound into the inequality from part (A). Since in
+part (A) we have $$
+-\frac{\exp(x_i^\top\theta)-\exp(x_i^\top\theta^{(k)})}{1+\exp(x_i^\top\theta^{(k)})},
+$$ replacing $\exp(x_i^\top\theta)$ by an upper bound gives a **lower
+bound** (minorizer) for the whole term.
+
+Let $$
+a_i^{(k)} := \frac{\exp(x_i^\top\theta^{(k)})}{1+\exp(x_i^\top\theta^{(k)})}.
+$$ Ignoring constants that do not depend on $\theta$, the resulting
+minorizing function can be written as $$
+g(\theta\mid\theta^{(k)})
+=
+-\frac{1}{p}\sum_{i=1}^n a_i^{(k)}\sum_{j=1}^p
+\exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right)
++
+\sum_{i=1}^n y_i x_i^\top\theta
+\quad (+\text{constant}).
+$$
+
+This matches the structure given in the homework statement.
+
+------------------------------------------------------------------------
+
+### (C) Maximizing $g(\theta\mid\theta^{(k)})$ leads to a 1D equation for each component
+
+Differentiate $g(\theta\mid\theta^{(k)})$ with respect to $\theta_j$.
+
+First term: $$
+\frac{\partial}{\partial \theta_j}
+\left[
+-\frac{1}{p}\sum_{i=1}^n a_i^{(k)}\sum_{m=1}^p
+\exp\left(p\,x_{im}(\theta_m-\theta^{(k)}_m)\right)
+\right]
+=
+-\frac{1}{p}\sum_{i=1}^n a_i^{(k)}
+\cdot
+\frac{\partial}{\partial\theta_j}
+\exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right).
+$$
+
+Since
+$\frac{\partial}{\partial\theta_j}\exp\{p x_{ij}(\theta_j-\theta^{(k)}_j)\}
+=
+p x_{ij}\exp\{p x_{ij}(\theta_j-\theta^{(k)}_j)\}$, this becomes $$
+-\sum_{i=1}^n a_i^{(k)} x_{ij}\exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right).
+$$
+
+Second term: $$
+\frac{\partial}{\partial\theta_j}\sum_{i=1}^n y_i x_i^\top\theta
+=
+\sum_{i=1}^n y_i x_{ij}.
+$$
+
+Set derivative to zero: $$
+-\sum_{i=1}^n a_i^{(k)} x_{ij}\exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right)
++
+\sum_{i=1}^n y_i x_{ij} = 0.
+$$
+
+Now expand the exponential: $$
+\exp\left(p\,x_{ij}(\theta_j-\theta^{(k)}_j)\right)
+=
+\exp(p x_{ij}\theta_j)\exp(-p x_{ij}\theta^{(k)}_j).
+$$
+
+Also substitute
+$a_i^{(k)}=\frac{\exp(x_i^\top\theta^{(k)})}{1+\exp(x_i^\top\theta^{(k)})}$.
+Then the stationarity equation becomes $$
+-\sum_{i=1}^n
+\frac{\exp(x_i^\top\theta^{(k)})}{1+\exp(x_i^\top\theta^{(k)})}
+\,x_{ij}\exp(-p x_{ij}\theta^{(k)}_j)\exp(p x_{ij}\theta_j)
++\sum_{i=1}^n y_i x_{ij}=0,
+$$ which is the equation requested in the homework.
+
+Each coordinate $\theta_j$ can be updated by numerically solving this 1D
+equation (e.g., with `uniroot()`), holding the other coordinates fixed
+at the current iterate (because the surrogate is separable across $j$).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
