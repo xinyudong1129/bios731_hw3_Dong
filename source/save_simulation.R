@@ -3,7 +3,7 @@ library(dplyr)
 
 library(here)
 
-source(here("source","simulate_data.R"))
+source(here("source","simulate_logistic.R"))
 
 dat <- simulate_logistic_data(
   n = 200,
