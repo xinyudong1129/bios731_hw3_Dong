@@ -1,11 +1,5 @@
-<<<<<<< HEAD
 # RStudio / session artifacts
 .Rhistory
 .RData
 .Rproj.user/
-=======
-# RStudio / session artifacts
-.Rhistory
-.RData
-.Rproj.user/
->>>>>>> 6d535143e49a0cea7f7d5aa5082e1d32702d9cab
+
